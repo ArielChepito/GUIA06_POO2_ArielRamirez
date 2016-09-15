@@ -2,8 +2,9 @@ $(document).ready(function() {
     $.fn.initBootTable = function() {
         $(this).bootstrapTable('destroy');
         $(this).bootstrapTable().
-        on('check.bs.table', function (e, row) {
-            setMessage('MESS_SUCC', 'Atención', 'Ha seleccionado a: ' + row.nomb.trim());
+        unBind('check.bs.table').on('check.bs.table', function (e, row) {
+            consAlum({})
+            //setMessage('MESS_SUCC', 'Atención', 'Ha seleccionado a: ' + row.nomb.trim());
             console.log(JSON.stringify(row));
             console.log("Aquí es papá!:"+row.mail);
             $("[id='FormAlum:codi']").val(row.id);

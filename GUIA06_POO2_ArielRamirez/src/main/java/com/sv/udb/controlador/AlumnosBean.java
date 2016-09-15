@@ -5,12 +5,15 @@
  */
 package com.sv.udb.controlador;
 
+import com.sv.udb.ejb.AlumnosFacadeLocal;
 import com.sv.udb.modelo.Alumnos;
 import java.io.Serializable;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.inject.Named;
 import javax.enterprise.context.RequestScoped;
+import javax.faces.context.FacesContext;
 import javax.faces.view.ViewScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -25,6 +28,10 @@ import org.primefaces.context.RequestContext;
 @Named(value = "alumnosBean")
 @ViewScoped
 public class AlumnosBean implements Serializable{
+
+    @EJB
+    private AlumnosFacadeLocal FCDEAlum;
+    
     private Alumnos objeAlum;
     private List<Alumnos> listAlum;
     private boolean guardar;
@@ -67,29 +74,23 @@ public class AlumnosBean implements Serializable{
     }
     public void guar()
     {
-        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturo el contexto de la página
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("POOPU");
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        tx.begin();
+        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturo el contexto de la página  
+       
         try
         {
-            em.persist(this.objeAlum);
-            tx.commit();
-            this.guardar = true;
-            this.listAlum.add(this.objeAlum); //Agrega el objeto a la lista para poderse mostrar en tabla
-            this.objeAlum = new Alumnos(); // Limpiar
+            FCDEAlum.create(objeAlum);
+            this.guardar=true;
+            this.objeAlum=new Alumnos();
             ctx.execute("setMessage('MESS_SUCC', 'Atención', 'Datos guardados')");
         }
         catch(Exception ex)
         {
             ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al guardar ')");
-            tx.rollback();
+            
         }
         finally
         {
-            em.close();
-            emf.close();            
+                      
         }
     }
     
@@ -99,7 +100,7 @@ public class AlumnosBean implements Serializable{
         EntityManager em = emf.createEntityManager();
         try
         {
-            this.listAlum = em.createNamedQuery("Alumnos.findAll", Alumnos.class).getResultList();
+            this.listAlum=FCDEAlum.findAll();
         }
         catch(Exception ex)
         {
@@ -111,31 +112,42 @@ public class AlumnosBean implements Serializable{
             emf.close();            
         }
     }
-    
+    public void cons()
+    {
+       
+        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturo el contexto de la página  
+       int codi = Integer.parseInt(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("nombreparametro"));
+        try
+        {
+            this.objeAlum=FCDEAlum.find(codi);          
+            this.objeAlum=new Alumnos();
+            ctx.execute("setMessage('MESS_SUCC', 'Atención', 'Datos guardados')");
+        }
+        catch(Exception ex)
+        {
+            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al guardar ')");
+            
+        }
+        finally
+        {
+                      
+        }
+    }
      public void elim()
     {
         RequestContext ctx = RequestContext.getCurrentInstance(); //Capturo el contexto de la página
-       EntityManagerFactory emf = Persistence.createEntityManagerFactory("POOPU");
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();       
-        tx.begin();
-        Alumnos respo = null;
+       
+     
         try{
-            respo = em.find(Alumnos.class, this.objeAlum);
-            
-            if(respo != null)
-            {
-                em.remove(respo);
-               
-                 this.listAlum.remove(this.objeAlum);              
-                tx.commit();
+
+            FCDEAlum.remove(this.objeAlum);
+            this.guardar=true;              
                 ctx.execute("setMessage('MESS_INFO', 'Atención', 'Registro eliminado')");
-            }
+            
         }catch(Exception e){
-            tx.rollback();
+            
         }
-        em.close();
-        emf.close();
+     
         
     }
 }
