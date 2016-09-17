@@ -1,1 +1,1 @@
-# GUIA06_POO2_ArielRamirez
+Proyecto java web maven + JPA + JSF + EJB + PrimeFaces
